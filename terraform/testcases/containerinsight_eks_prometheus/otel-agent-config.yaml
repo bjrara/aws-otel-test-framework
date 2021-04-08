@@ -1,0 +1,150 @@
+extensions:
+  health_check:
+
+receivers:
+  awscontainerinsightreceiver:
+    collection_interval: 60s
+
+processors:
+  batch/metrics:
+    timeout: 60s
+  awscontainerinsightprocessor:
+  resourcedetection/ec2:
+    detectors: [ec2]
+    timeout: 5s
+    override: false
+    ec2:
+      tags:
+      - eks:cluster-name
+      - aws:autoscaling:groupName
+
+  resource:
+    attributes:
+      - key: ClusterName
+        #from_attribute: ec2.tag.eks:cluster-name
+        value: ci-demo
+        action: insert
+      - key: ec2.tag.eks:cluster-name
+        action: delete
+      - key: AutoScalingGroupName
+        from_attribute: ec2.tag.aws:autoscaling:groupName
+        action: insert
+      - key: ec2.tag.aws:autoscaling:groupName
+        action: delete
+      - key: cloud.account.id
+        action: delete
+      - key: cloud.infrastructure_service
+        action: delete
+      - key: cloud.provider
+        action: delete
+      - key: cloud.region
+        action: delete
+      - key: cloud.zone
+        action: delete
+      - key: host.id
+        action: delete
+      - key: host.image.id
+        action: delete
+      - key: host.name
+        action: delete
+      - key: host.type
+        action: delete
+
+  # metricstransform:
+  #   transforms:
+  #     - include: ^.*
+  #       action: update
+  #       operations:
+  #         - action: update_label
+  #           label: ClusterName
+  #           value_actions:
+  #             - value: eks-aoc
+  #               new_value: ci-demo
+
+
+exporters:
+  awsemf:
+    namespace: ContainerInsights
+    log_group_name: '/aws/containerinsights/{ClusterName}/performance'
+    log_stream_name: '{NodeName}'
+    resource_to_telemetry_conversion:
+      enabled: true
+    dimension_rollup_option: NoDimensionRollup
+    parse_json_encoded_attr_values: [Sources, kubernetes]
+    metric_declarations:
+      # node metrics
+      - dimensions: [[NodeName, InstanceId, ClusterName]]
+        metric_name_selectors:
+          - node_cpu_utilization
+          - node_memory_utilization
+          - node_network_total_bytes
+          - node_cpu_reserved_capacity
+          - node_memory_reserved_capacity
+          - node_number_of_running_pods
+          - node_number_of_running_containers
+      - dimensions: [[ClusterName]]
+        metric_name_selectors:
+          - node_cpu_utilization
+          - node_memory_utilization
+          - node_network_total_bytes
+          - node_cpu_reserved_capacity
+          - node_memory_reserved_capacity
+          - node_number_of_running_pods
+          - node_number_of_running_containers
+          - node_cpu_usage_total
+          - node_cpu_limit
+          - node_memory_working_set
+          - node_memory_limit
+
+      # pod metrics
+      - dimensions: [[PodName, Namespace, ClusterName], [Service, Namespace, ClusterName], [Namespace, ClusterName], [ClusterName]]
+        metric_name_selectors:
+          - pod_cpu_utilization
+          - pod_memory_utilization
+          - pod_network_rx_bytes
+          - pod_network_tx_bytes
+          - pod_cpu_utilization_over_pod_limit
+          - pod_memory_utilization_over_pod_limit
+      - dimensions: [[PodName, Namespace, ClusterName], [ClusterName]]
+        metric_name_selectors:
+          - pod_cpu_reserved_capacity
+          - pod_memory_reserved_capacity
+      - dimensions: [[PodName, Namespace, ClusterName]]
+        metric_name_selectors:
+          - pod_number_of_container_restarts
+
+      # cluster metrics
+      - dimensions: [[ClusterName]]
+        metric_name_selectors:
+          - cluster_node_count
+          - cluster_failed_node_count
+
+      # service metrics
+      - dimensions: [[Service, Namespace, ClusterName], [ClusterName]]
+        metric_name_selectors:
+          - service_number_of_running_pods
+
+      # node fs metrics
+      - dimensions: [[NodeName, InstanceId, ClusterName], [ClusterName]]
+        metric_name_selectors:
+          - node_filesystem_utilization
+
+      # namespace metrics
+      - dimensions: [[Namespace, ClusterName], [ClusterName]]
+        metric_name_selectors:
+          - namespace_number_of_running_pods
+
+
+
+
+  logging:
+    loglevel: debug
+
+service:
+  pipelines:
+    metrics:
+      receivers: [awscontainerinsightreceiver]
+      processors: [awscontainerinsightprocessor, resourcedetection/ec2, resource, batch/metrics]
+      exporters: [awsemf]
+
+  extensions: [health_check]
