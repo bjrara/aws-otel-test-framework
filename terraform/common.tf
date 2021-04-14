@@ -31,7 +31,7 @@ variable "sample_app_image" {
 }
 
 variable "aoc_image_repo" {
-  default = "611364707713.dkr.ecr.us-west-2.amazonaws.com/aws/aws-otel-collector"
+  default = "633750930120.dkr.ecr.us-west-2.amazonaws.com/aws/aws-otel-collector"
 }
 
 variable "aoc_version" {
@@ -69,7 +69,7 @@ variable "sample_app_mode" {
 
 variable "cortex_instance_endpoint" {
   # change to your cortex endpoint
-  default = "https://aps-workspaces-gamma.us-west-2.amazonaws.com/workspaces/ws-31eb305d-3208-42d5-a7f4-32ce1191e699"
+  default = "https://aps-workspaces.us-west-2.amazonaws.com/workspaces/ws-6ff54b00-fcb8-4363-84db-c62130a80b28"
 }
 
 variable "aotutil" {
