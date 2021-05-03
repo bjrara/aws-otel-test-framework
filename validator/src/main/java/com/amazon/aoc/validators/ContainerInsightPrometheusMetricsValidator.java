@@ -3,7 +3,7 @@ package com.amazon.aoc.validators;
 import com.amazon.aoc.helpers.MustacheHelper;
 import com.amazon.aoc.models.CloudWatchContext;
 import com.amazon.aoc.models.Context;
-import com.amazon.aoc.models.JsonSchemaFileConfig;
+import com.amazon.aoc.models.TemplateFileConfig;
 import com.amazonaws.services.cloudwatch.model.Metric;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -23,7 +23,7 @@ public class ContainerInsightPrometheusMetricsValidator extends AbstractCWMetric
     List<CloudWatchContext.App> validateApps = getAppsToValidate(context.getCloudWatchContext());
     MustacheHelper mustacheHelper = new MustacheHelper();
     for (CloudWatchContext.App app : validateApps) {
-      String templateInput = mustacheHelper.render(new JsonSchemaFileConfig(
+      String templateInput = mustacheHelper.render(new TemplateFileConfig(
               FilenameUtils.concat(templatePath,
                       app.getName() + "_metrics.mustache")), context);
       List<Metric> appMetrics = mapper.readValue(templateInput.getBytes(StandardCharsets.UTF_8),

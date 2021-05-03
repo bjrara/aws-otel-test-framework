@@ -2,7 +2,7 @@ package com.amazon.aoc.validators;
 
 import com.amazon.aoc.helpers.MustacheHelper;
 import com.amazon.aoc.models.Context;
-import com.amazon.aoc.models.JsonSchemaFileConfig;
+import com.amazon.aoc.models.TemplateFileConfig;
 import com.amazonaws.services.logs.model.FilteredLogEvent;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.extern.log4j.Log4j2;
@@ -42,7 +42,7 @@ public class ContainerInsightStructuredLogValidator
             context.getCloudWatchContext().getClusterName());
     MustacheHelper mustacheHelper = new MustacheHelper();
     for (String logType : LOG_TYPE_TO_VALIDATE) {
-      String templateInput = mustacheHelper.render(new JsonSchemaFileConfig(
+      String templateInput = mustacheHelper.render(new TemplateFileConfig(
               FilenameUtils.concat(templatePath, logType + ".json")), context);
       schemasToValidate.put(logType, parseJsonSchema(templateInput));
     }
