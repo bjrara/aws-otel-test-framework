@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: aws-otel-collector
-          image: ${OTEL_IMAGE}
+          image: ${OTELIMAGE}
           env:
             - name: AWS_REGION
               value: ${REGION} 

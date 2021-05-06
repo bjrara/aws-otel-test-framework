@@ -25,7 +25,7 @@ data "template_file" "daemonset_file" {
   vars = {
     NAMESPACE       = kubernetes_namespace.aoc_ns.metadata[0].name
     SERVICE_ACCOUNT = kubernetes_service_account.aoc-agent-role.metadata[0].name
-    OTEL_IMAGE      = module.common.aoc_image
+    OTELIMAGE      = module.common.aoc_image
     REGION          = var.region
   }
 }
